@@ -21,13 +21,12 @@ class RendererMC(RendererBase):
 
     mc = mcpi.minecraft.Minecraft.create()
 
-    def __init__(self, l,b,w, h, dpi,bbox):
+    def __init__(self, l,b,w,h, dpi,bbox):
         RendererBase.__init__(self)
-        self.scaling=0.25
-        self.height=225
+        self.height=110
 
-        self.l=450
-        self.b=-150
+        self.l=0
+        self.b=0
         self.w=w
         self.h=h
         self.dpi=dpi
@@ -44,22 +43,20 @@ class RendererMC(RendererBase):
         
         for point,code in path.iter_segments(curves=False,transform=transform,
           clip=transform.transform_bbox(self.bbox).bounds):
-            point=point*self.scaling+[self.l,self.b]
-            point*=[1,-1]
-            point+=[0,self.b]
+            point=point+[self.l,self.b]
 
             if code==1:
                 lastpoint=point
                 firstpoint=point
             elif code==2:
                 utils.plotLine(rti(lastpoint[0]),rti(lastpoint[1]), rti(point[0]), rti(point[1]),
-                    lambda i,j: RendererMC.mc.setBlock(i,self.height,j
+                    lambda i,j: RendererMC.mc.setBlock(j,self.height,i
                         ,mcpi.block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
                 )
                 lastpoint=point        
             elif code==79:
                 utils.plotLine(rti(lastpoint[0]),rti(lastpoint[1]), rti(firstpoint[0]), rti(firstpoint[1]),
-                    lambda i,j: RendererMC.mc.setBlock(i,self.height,j
+                    lambda i,j: RendererMC.mc.setBlock(j,self.height,i
                         ,mcpi.block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
                 )
                 firstpoint=point
@@ -67,9 +64,9 @@ class RendererMC(RendererBase):
 
     def clear(self):
         print('clearing')
-        for i in range(rti(self.l),rti(self.l+self.w*self.scaling)+1):
-            for j in range(rti(self.b),rti(self.b+self.h*self.scaling)):
-                RendererMC.mc.setBlock(i,self.height,j,mcpi.block.AIR)
+        for i in range(rti(self.l),rti(self.l+self.w)+1):
+            for j in range(rti(self.b),rti(self.b+self.h)+1):
+                RendererMC.mc.setBlock(j,self.height,i,mcpi.block.AIR)
                 
     #def new_gc(self):
         # docstring inherited
@@ -96,13 +93,10 @@ class FigureCanvasMC(FigureCanvasBase):
     def get_renderer(self, cleared=False):
         l, b, w, h = self.figure.bbox.bounds
         key = w, h, self.figure.dpi
-        reuse_renderer = (hasattr(self, "renderer")
-                          and getattr(self, "_lastKey", None) == key)
 
-        if not reuse_renderer:
+        if not hasattr(self, "renderer"):
             self.renderer = RendererMC(l,b,w,h,self.figure.dpi,self.figure.bbox)
-            self._lastKey = key
-        elif cleared:
+        if cleared:
             self.renderer.clear()
         return self.renderer
 
