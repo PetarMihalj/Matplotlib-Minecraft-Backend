@@ -2,15 +2,13 @@ import matplotlib as mpl
 import mpl_pi
 mpl.use("module://mpl_pi")
 import matplotlib.pyplot as plt
+
 import numpy as np
+import time
 
-rend = mpl_pi.RendererMC()
+x=np.arange(-1,3,0.01)
 
-fig = mpl.figure.Figure((1,1))
-ax=fig.add_axes((0,0,1,1))
+plt.plot(x,x)
+plt.draw()
 
-x=np.arange(-1,1,0.01)
-ax.plot(x,x*x,'r:')
 
-fig.draw(rend)
-fig.clear()
