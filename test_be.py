@@ -1,11 +1,16 @@
 import matplotlib as mpl
 import mpl_pi
 mpl.use("module://mpl_pi")
+import matplotlib.pyplot as plt
+import numpy as np
 
+rend = mpl_pi.RendererMC()
 
-rend = mpl_pi.RendererMC(5,5,5)
+fig = mpl.figure.Figure((1,1))
+ax=fig.add_axes((0,0,1,1))
 
-fig = mpl.figure.Figure()
-ax=fig.add_axes((0,0,5,5))
-ax.plot([1,2])
+x=np.arange(-1,1,0.01)
+ax.plot(x,x*x,'r:')
+
 fig.draw(rend)
+fig.clear()

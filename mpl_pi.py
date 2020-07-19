@@ -14,12 +14,8 @@ class RendererMC(RendererBase):
     """
     mc = mcpi.minecraft.Minecraft.create()
 
-    def __init__(self, width, height, dpi):
+    def __init__(self):
         RendererBase.__init__(self)
-        print('here')
-        self.dpi = dpi
-        self.width = width
-        self.height = height
 
     def draw_path(self, gc, path, transform, rgbFace=None):
         # docstring inherited
@@ -30,27 +26,14 @@ class RendererMC(RendererBase):
                 lastpoint=point
             elif code==2 or code==79:
                 utils.plotLine(int(lastpoint[0]),int(lastpoint[1]), int(point[0]), int(point[1]),
-                    lambda i,j: RendererMC.mc.setBlock(i,70,-j,mcpi.block.WOOL.id,0)
+                    lambda i,j: RendererMC.mc.setBlock(i,45,-j
+                        ,mcpi.block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
                 )
+                
                 lastpoint=point        
 
-    def get_canvas_width_height(self):
-        return self.width, self.height
-
     def clear(self):
-        pass
-
-    def option_image_nocomposite(self):
-        # docstring inherited
-
-        # It is generally faster to composite each image directly to
-        # the Figure, and there's no file size benefit to compositing
-        # with the Agg backend
-        return True
-
-    def option_scale_image(self):
-        # docstring inherited
-        return False
+        print("clearing")
 
 
 class FigureCanvasMC(FigureCanvasBase):
@@ -72,7 +55,7 @@ class FigureCanvasMC(FigureCanvasBase):
         reuse_renderer = (hasattr(self, "renderer")
                           and getattr(self, "_lastKey", None) == key)
         if not reuse_renderer:
-            self.renderer = RendererMC(w, h, self.figure.dpi)
+            self.renderer = RendererMC()
             self._lastKey = key
         elif cleared:
             self.renderer.clear()
