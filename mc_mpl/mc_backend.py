@@ -1,16 +1,22 @@
 from matplotlib.backend_bases import Gcf
-from matplotlib.backend_bases import RendererBase,FigureCanvasBase
+from matplotlib.backend_bases import RendererBase, FigureCanvasBase
 from matplotlib.backend_bases import FigureManagerBase,_Backend,GraphicsContextBase
 
-import mcpi.minecraft
-import mcpi.block
+import mcpi.minecraft as minecraft
+import mcpi.block as block
+import utils as utils
 
 import numpy as np
-import utils
 import threading
+import matplotlib as mpl
 
 def rti(x):
     return int(round(x))
+
+mc = minecraft.Minecraft.create(
+    address=mpl.rcParams.get('mc_mpl.ip', '127.0.0.1'),
+    port=mpl.rcParams.get('mc_mpl.port', 4711)
+)
 
 class RendererMC(RendererBase):
     """
@@ -19,14 +25,12 @@ class RendererMC(RendererBase):
     """
     lock = threading.RLock()
 
-    mc = mcpi.minecraft.Minecraft.create()
-
     def __init__(self, l,b,w,h, dpi,bbox):
         RendererBase.__init__(self)
-        self.height=110
+        self.height=10
 
-        self.l=0
-        self.b=0
+        self.l=l
+        self.b=b
         self.w=w
         self.h=h
         self.dpi=dpi
@@ -50,14 +54,14 @@ class RendererMC(RendererBase):
                 firstpoint=point
             elif code==2:
                 utils.plotLine(rti(lastpoint[0]),rti(lastpoint[1]), rti(point[0]), rti(point[1]),
-                    lambda i,j: RendererMC.mc.setBlock(j,self.height,i
-                        ,mcpi.block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
+                    lambda i,j: mc.setBlock(j,self.height,i
+                        ,block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
                 )
                 lastpoint=point        
             elif code==79:
                 utils.plotLine(rti(lastpoint[0]),rti(lastpoint[1]), rti(firstpoint[0]), rti(firstpoint[1]),
-                    lambda i,j: RendererMC.mc.setBlock(j,self.height,i
-                        ,mcpi.block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
+                    lambda i,j: mc.setBlock(j,self.height,i
+                        ,block.WOOL.id,utils.rgb_to_wool_data(rgbFace))
                 )
                 firstpoint=point
                 lastpoint=point        
@@ -66,7 +70,7 @@ class RendererMC(RendererBase):
         print('clearing')
         for i in range(rti(self.l),rti(self.l+self.w)+1):
             for j in range(rti(self.b),rti(self.b+self.h)+1):
-                RendererMC.mc.setBlock(j,self.height,i,mcpi.block.AIR)
+                mc.setBlock(j,self.height,i,block.AIR)
                 
     #def new_gc(self):
         # docstring inherited
@@ -92,7 +96,7 @@ class FigureCanvasMC(FigureCanvasBase):
 
     def get_renderer(self, cleared=False):
         l, b, w, h = self.figure.bbox.bounds
-        key = w, h, self.figure.dpi
+        #key = w, h, self.figure.dpi
 
         if not hasattr(self, "renderer"):
             self.renderer = RendererMC(l,b,w,h,self.figure.dpi,self.figure.bbox)
