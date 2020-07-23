@@ -5,10 +5,11 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+
 mpl.use("module://mc_backend")
 
 plt.rcParams["figure.figsize"] = (1, 1)
-mpl.rcParams['lines.markersize'] = 1
+mpl.rcParams["lines.markersize"] = 1
 
 
 plt.draw()
@@ -22,23 +23,25 @@ class Capturing(list):
 
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
+        del self._stringio  # free up some memory
         sys.stdout = self._stdout
 
 
+import MDE
+
 while True:
     time.sleep(1)
-    for msg in mc_backend.mc.player.pollChatPosts():
-        if len(msg.message) > 0 and msg.message[0] == '%':
+    for msg in mc_backend.mde.mc.player.pollChatPosts():
+        if len(msg.message) > 0 and msg.message[0] == "%":
             try:
                 out = eval(msg.message[1:])
-                mc_backend.mc.postToChat(out)
+                mc_backend.mde.mc.postToChat(out)
             except BaseException as error:
-                mc_backend.mc.postToChat(error)
+                mc_backend.mde.mc.postToChat(error)
         else:
             try:
                 with Capturing() as out:
                     exec(msg.message)
-                mc_backend.mc.postToChat(out)
+                mc_backend.mde.mc.postToChat(out)
             except BaseException as error:
-                mc_backend.mc.postToChat(error)
+                mc_backend.mde.mc.postToChat(error)

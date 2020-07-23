@@ -31,6 +31,10 @@ class Window:
         self._destroy_callback(self)
 
 
+ADDRESS = "127.0.0.1"
+PORT = 4711
+
+
 class MDE:
     def __init__(self):
         self._connect()
@@ -42,12 +46,9 @@ class MDE:
         self.last_rendered_points = []
 
     def _connect(self):
-        self.mc = mcpi.minecraft.Minecraft.create(
-            address=mpl.rcParams.get("mc_mpl.ip", "127.0.0.1"),
-            port=mpl.rcParams.get("mc_mpl.port", 4711),
-        )
+        self.mc = mcpi.minecraft.Minecraft.create(address=ADDRESS, port=PORT)
 
-    def create_window(self, pos, dims):
+    def create_window(self, pos=(0, 0, 0), dims=(50, 50, 1)):
         w = Window(
             pos,
             dims,
@@ -75,7 +76,7 @@ class MDE:
             )
             for (x, y, z, block_id, block_data) in w.points:
                 self.mc.setBlock(y, z, x, block_id, block_data)
-                self.last_rendered_points.append((x, y, z))
+                self.last_rendered_points.append((x, y, z, block_id, block_data))
 
     def _focus_callback(self, window):
         self.focus_time[w] = self.next_focus_time

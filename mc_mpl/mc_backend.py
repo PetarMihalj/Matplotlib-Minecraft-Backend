@@ -20,17 +20,7 @@ mde = MDE.MDE()
 
 
 class RendererMC(RendererBase):
-
-    # closure which draws a point and fills drawn_point array
-    def draw_point(self, i, j, k, block_id=block.WOOL.id, block_data=0):
-        self.drawn_points.append((i, j, k))
-
-    def clear(self):
-        for i, j, k in self.drawn_points:
-            mc.setBlock(j, k, i, block.AIR)
-        self.drawn_points.clear()
-
-    def __init__(self, l, b, w, h, dpi, bbox):
+    def __init__(self, l, b, w, h, dpi, bbox, draw_point_callback):
         RendererBase.__init__(self)
         self.drawn_points = []
         self.height = 10
@@ -40,6 +30,7 @@ class RendererMC(RendererBase):
         self.h = h
         self.dpi = dpi
         self.bbox = bbox
+        self.dpc = draw_point_callback
 
     def get_canvas_width_height(self):
         return self.w, self.h
@@ -53,6 +44,9 @@ class RendererMC(RendererBase):
             # clip=transform.transform_bbox(self.bbox).bounds,
         ):
             point = point + [self.l, self.b]
+            drawing_closure = lambda x, y: self.dpc(
+                (x, y, 10, block.WOOL.id, utils.rgb_to_wool_data(rgbFace))
+            )
 
             if code == 1:
                 lastpoint = point
@@ -63,9 +57,7 @@ class RendererMC(RendererBase):
                     rti(lastpoint[1]),
                     rti(point[0]),
                     rti(point[1]),
-                    lambda i, j: self.draw_point(
-                        i, j, self.height, block_data=utils.rgb_to_wool_data(rgbFace)
-                    ),
+                    drawing_closure,
                 )
                 lastpoint = point
             elif code == 79:
@@ -74,9 +66,7 @@ class RendererMC(RendererBase):
                     rti(lastpoint[1]),
                     rti(firstpoint[0]),
                     rti(firstpoint[1]),
-                    lambda i, j: self.draw_point(
-                        i, j, self.height, block_data=utils.rgb_to_wool_data(rgbFace)
-                    ),
+                    drawing_closure,
                 )
                 firstpoint = point
                 lastpoint = point
@@ -95,18 +85,19 @@ class FigureCanvasMC(FigureCanvasBase):
         """
         Draw the figure using the renderer.
         """
-        self.renderer = self.get_renderer(cleared=True)
-        self.figure.draw(self.renderer)
-
-    def get_renderer(self, cleared=False):
         l, b, w, h = self.figure.bbox.bounds
-        # key = w, h, self.figure.dpi
+        self.renderer = RendererMC(
+            l,
+            b,
+            w,
+            h,
+            self.figure.dpi,
+            self.figure.bbox,
+            self.manager.window.add_point,
+        )
 
-        if not hasattr(self, "renderer"):
-            self.renderer = RendererMC(l, b, w, h, self.figure.dpi, self.figure.bbox)
-        if cleared:
-            self.renderer.clear()
-        return self.renderer
+        self.figure.draw(self.renderer)
+        self.manager.window.render()
 
 
 class FigureManagerMC(FigureManagerBase):
