@@ -111,10 +111,22 @@ class FigureCanvasMC(FigureCanvasBase):
 
 class FigureManagerMC(FigureManagerBase):
     def __init__(self, canvas, num):
+        self.window = mde.create_window()
         super().__init__(canvas, num)
 
+    def show(self):
+        self.window.focus()
+        self.window.render()
+
     def destroy(self):
-        self.canvas.renderer.clear()
+        self.window.destroy()
+        self.window.render()
+
+    def resize(self, w, h):
+        self.window.resize((w, h, 1))
+
+    def move(self, x, y):
+        self.window.move((x, y, 10))
 
 
 @_Backend.export

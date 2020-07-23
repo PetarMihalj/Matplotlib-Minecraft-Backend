@@ -3,13 +3,14 @@ import mcpi.minecraft
 
 
 class Window:
-    def __init__(self, pos, dims, _render_callback, _focus_callback):
+    def __init__(self, pos, dims, _render_callback, _focus_callback, _destroy_callback):
         self.pos = pos
         self.dims = dims
 
         self.points = []
         self._render_callback = _render_callback
         self._focus_callback = _focus_callback
+        self._destroy_callback = _destroy_callback
 
     def move(self, pos):
         self.pos = pos
@@ -26,10 +27,13 @@ class Window:
     def render(self):
         self._render_callback()
 
+    def destroy(self):
+        self._destroy_callback(self)
+
 
 class MDE:
     def __init__(self):
-        self.connect()
+        self._connect()
         self.next_focus_time = 0
 
         # maps windows to focus time
@@ -37,14 +41,20 @@ class MDE:
 
         self.last_rendered_points = []
 
-    def connect(self):
+    def _connect(self):
         self.mc = mcpi.minecraft.Minecraft.create(
             address=mpl.rcParams.get("mc_mpl.ip", "127.0.0.1"),
             port=mpl.rcParams.get("mc_mpl.port", 4711),
         )
 
     def create_window(self, pos, dims):
-        w = Window(pos, dims, self._render_callback, self._focus_callback)
+        w = Window(
+            pos,
+            dims,
+            self._render_callback,
+            self._focus_callback,
+            self._destroy_callback,
+        )
         self.focus_time[w] = self.next_focus_time
         self.next_focus_time += 1
         return w
@@ -71,3 +81,5 @@ class MDE:
         self.focus_time[w] = self.next_focus_time
         self.next_focus_time += 1
 
+    def _destroy_callback(self, window):
+        del self.focus_time[window]
