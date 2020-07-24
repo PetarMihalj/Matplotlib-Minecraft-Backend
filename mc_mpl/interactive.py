@@ -12,7 +12,7 @@ plt.rcParams["figure.figsize"] = (1, 1)
 mpl.rcParams["lines.markersize"] = 1
 
 
-plt.draw()
+# plt.ion()
 
 
 class Capturing(list):

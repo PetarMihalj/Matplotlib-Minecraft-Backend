@@ -4,40 +4,42 @@ import mcpi.minecraft
 
 class Window:
     def __init__(self, pos, dims, _render_callback, _focus_callback, _destroy_callback):
-        self.pos = pos
-        self.dims = dims
+        self._pos = pos
+        self._dims = dims
 
+        #this is a part of public interface
+        #lazy until render() called
         self.points = []
+
         self._render_callback = _render_callback
         self._focus_callback = _focus_callback
         self._destroy_callback = _destroy_callback
 
     def move(self, pos):
-        self.pos = pos
+        self._pos = pos
+        self._render_callback()
 
     def resize(self, dims):
-        self.dims = dims
-
-    def add_point(self, point):
-        self.points.append(point)
+        self._dims = dims
+        self._render_callback()
 
     def focus(self):
         self._focus_callback(self)
+        self._render_callback()
+
+    def close(self):
+        self.clear()
+        self._destroy_callback(self)
+        self._render_callback()
 
     def render(self):
         self._render_callback()
 
-    def destroy(self):
-        self._destroy_callback(self)
-
-
-ADDRESS = "127.0.0.1"
-PORT = 4711
-
-
-class MDE:
-    def __init__(self):
-        self._connect()
+        
+import singleton
+class MDE(metaclass = singleton.Singleton):
+    def __init__(self, ADDRESS="127.0.0.1" PORT=4711):
+        self._connect(ADDRESS, PORT)
         self.next_focus_time = 0
 
         # maps windows to focus time
@@ -45,7 +47,7 @@ class MDE:
 
         self.last_rendered_points = []
 
-    def _connect(self):
+    def _connect(self, ADDRESS, PORT):
         self.mc = mcpi.minecraft.Minecraft.create(address=ADDRESS, port=PORT)
 
     def create_window(self, pos=(0, 0, 0), dims=(50, 50, 1)):
@@ -61,8 +63,10 @@ class MDE:
         return w
 
     def _render_callback(self):
+        print("render callback MDE")
         for (x, y, z, block_id, block_data) in self.last_rendered_points:
             self.mc.setBlock(y, z, x, mcpi.block.AIR)
+        self.last_rendered_points.clear()
 
         for w, prio in sorted(
             self.focus_time.items(), key=lambda x: x[1], reverse=True
@@ -75,12 +79,19 @@ class MDE:
                 mcpi.block.AIR
             )
             for (x, y, z, block_id, block_data) in w.points:
-                self.mc.setBlock(y, z, x, block_id, block_data)
-                self.last_rendered_points.append((x, y, z, block_id, block_data))
+                self.mc.setBlock(
+                    y + w.pos[0], z + w.pos[1], x + w.pos[2], block_id, block_data
+                )
+                self.last_rendered_points.append(
+                    (x + w.pos[0], y + w.pos[1], z + w.pos[2], block_id, block_data)
+                )
 
     def _focus_callback(self, window):
-        self.focus_time[w] = self.next_focus_time
+        self.focus_time[window] = self.next_focus_time
         self.next_focus_time += 1
 
     def _destroy_callback(self, window):
         del self.focus_time[window]
+
+
+instance = MDE()

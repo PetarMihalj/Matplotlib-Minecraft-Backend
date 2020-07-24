@@ -99,6 +99,9 @@ class FigureCanvasMC(FigureCanvasBase):
         self.figure.draw(self.renderer)
         self.manager.window.render()
 
+    def draw_idle(self):
+        self.draw()
+
 
 class FigureManagerMC(FigureManagerBase):
     def __init__(self, canvas, num):
