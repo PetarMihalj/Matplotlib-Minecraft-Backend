@@ -34,9 +34,6 @@ class Window:
         self._destroy_callback = _destroy_callback
         self._clear_screen_callback = _clear_screen_callback
 
-    def mainloop(self):
-        print("a")
-
     def move(self, pos):
         self._clear_screen_callback()
         self.pos = pos
@@ -61,7 +58,6 @@ class Window:
         self._render_callback()
 
     def render(self):
-        print(self.points)
         self._render_callback()
 
 
@@ -73,30 +69,6 @@ class MDE(metaclass=singleton.Singleton):
         # maps windows to focus time
         self.focus_time = dict()
         self.last_rendered_points = []
-
-    def mainloop(self):
-        self.mc.player.setPos(0, 10, 0)
-        while True:
-            time.sleep(1)
-            for msg in self.mc.player.pollChatPosts():
-                if len(msg.message) > 0 and msg.message[0] == "%":
-                    try:
-                        # pylint: disable=eval-used
-                        out = eval(msg.message[1:])
-                        self.mc.postToChat(out)
-                    # pylint: disable=broad-except
-                    except BaseException as error:
-                        self.mc.postToChat(error)
-                else:
-                    try:
-                        out: io.StringIO
-                        with capturing_stdout() as out:
-                            # pylint: disable=exec-used
-                            exec(msg.message)
-                        self.mc.postToChat(out)
-                    # pylint: disable=broad-except
-                    except BaseException as error:
-                        self.mc.postToChat(error)
 
     def create_window(self, pos=(0, 10, 0), dims=(50, 1, 50)):
         w = Window(
@@ -113,7 +85,6 @@ class MDE(metaclass=singleton.Singleton):
 
     def _render_callback(self):
         for w, _ in sorted(self.focus_time.items(), key=lambda x: x[1]):
-            print("yo")
             self._draw_cube_relative_to_window(
                 w,
                 0,
@@ -125,7 +96,6 @@ class MDE(metaclass=singleton.Singleton):
                 block.AIR.id,
                 0,
             )
-            print(w.points)
             for point in w.points:
                 self._draw_point_relative_to_window(w, *point)
 
@@ -197,14 +167,6 @@ def get_cuboid_sides(x, y, z):
         if int(x[0] != y[0]) + int(x[1] != y[1]) + int(x[2] != y[2]) == 1
     ]
     return sides
-
-
-@contextlib.contextmanager
-def capturing_stdout():
-    backup = sys.stdout
-    sys.stdout = io.StringIO()
-    yield sys.stdout
-    sys.stdout = backup
 
 
 if __name__ == "__main__":

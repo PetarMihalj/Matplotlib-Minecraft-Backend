@@ -101,9 +101,7 @@ def rgb_to_wool_data(rgbface):
 
 class RendererMC(RendererBase):
     def __init__(self, l, b, w, h, dpi, bbox, draw_point_callback):
-        print("new rend")
         RendererBase.__init__(self)
-        self.drawn_points = []
         self.l = l
         self.b = b
         self.w = w
@@ -112,24 +110,18 @@ class RendererMC(RendererBase):
         self.bbox = bbox
         self.dpc = draw_point_callback
 
-    def get_canvas_width_height(self):
-        return self.w, self.h
-
     def draw_image(self, gc, x, y, im, transform=None):
         raise NotImplementedError()
 
     def draw_path(self, gc, path, transform, rgbFace=None):
+        def drawing_closure(x, y):
+            return self.dpc(
+                (x, 0, y, block.WOOL.id, rgb_to_wool_data(rgbFace))
+            )
         lastpoint = [0, 0]
 
         for point, code in path.iter_segments(curves=False, transform=transform,):
-
             point = point + [self.l, self.b]
-
-            def drawing_closure(x, y):
-                return self.dpc(
-                    (x, 0, y, block.WOOL.id, rgb_to_wool_data(rgbFace))
-                )
-
             if code == 1:
                 lastpoint = point
                 firstpoint = point

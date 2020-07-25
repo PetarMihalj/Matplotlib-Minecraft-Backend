@@ -2,6 +2,7 @@ from matplotlib.backend_bases import FigureCanvasBase
 from matplotlib.backend_bases import FigureManagerBase, _Backend
 
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 from mc_mpl.mde import MDE
 from mc_mpl.mc_renderer import RendererMC
@@ -16,16 +17,11 @@ class FigureCanvasMC(FigureCanvasBase):
         self.figure: mpl.figure.Figure
         self.manager: "FigureManagerMC"
 
-        # self.callbacks.connect("close_event", self.my_close_event)
-        # self.callbacks.connect("draw_event", self.my_close_event)
-
     # pylint: disable=unused-argument
     def draw(self, *vargs, **kvargs):
         """
         Draw the figure using the renderer.
         """
-        print("drawing")
-        # self.manager.window.points.clear()
         l, b, w, h = self.figure.bbox.bounds
         renderer = RendererMC(
             l,
@@ -38,32 +34,28 @@ class FigureCanvasMC(FigureCanvasBase):
         )
 
         self.figure.draw(renderer)
-        print("done")
 
 
 class FigureManagerMC(FigureManagerBase):
     def __init__(self, canvas, num):
         super().__init__(canvas, num)
         size = canvas.figure.get_size_inches() * canvas.figure.dpi
-        print(size)
 
         self.window = MDE().create_window(
             dims=(int(size[0]), 1, int(size[1])))
-        print("here")
+
         # initialized in superclass constructor
         self.canvas: FigureCanvasMC
 
     def show(self):
-        print("showing")
-        # self.canvas.draw()
+        self.window.points.clear()
+        self.canvas.draw()
         self.window.render()
 
     def destroy(self):
-        print("destroying")
         self.window.close()
 
     def resize(self, w, h):
-        print("resizing")
         self.window.resize((int(w), 1, int(h)))
 
     def move(self, x, y):

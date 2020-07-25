@@ -6,12 +6,16 @@ import matplotlib.pyplot as plt
 mpl.rcParams["figure.figsize"] = (0.3, 0.3)
 mpl.rcParams["lines.markersize"] = 1
 mpl.interactive(True)
-mpl.use("module://mc_backend")
+mpl.use("module://mc_mpl.mc_backend")
+
 
 plt.ion()
 print("INT:", mpl.is_interactive())
 plt.plot([1, 2, 1])
-plt.draw()
+plt.plot([1, 2, 1])
+# plt.draw()
+# plt.show()
+# plt.draw()
 
 # plt.draw()
 # plt.draw()
