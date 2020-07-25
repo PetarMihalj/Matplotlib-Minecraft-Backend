@@ -1,6 +1,14 @@
-import mcpi.minecraft
+import sys
 import time
+import contextlib
+import itertools
+import io
+
 import numpy as np
+
+import mc_mpl.mcpi.minecraft as minecraft
+import mc_mpl.singleton as singleton
+import mc_mpl.mcpi.block as block
 
 
 class Window:
@@ -13,8 +21,8 @@ class Window:
         _destroy_callback,
         _clear_screen_callback,
     ):
-        self._pos = pos
-        self._dims = dims
+        self.pos = pos
+        self.dims = dims
 
         # this is a part of public interface
         # lazy until render() called
@@ -26,14 +34,17 @@ class Window:
         self._destroy_callback = _destroy_callback
         self._clear_screen_callback = _clear_screen_callback
 
+    def mainloop(self):
+        print("a")
+
     def move(self, pos):
         self._clear_screen_callback()
-        self._pos = pos
+        self.pos = pos
         self._render_callback()
 
     def resize(self, dims):
         self._clear_screen_callback()
-        self._dims = dims
+        self.dims = dims
         self._render_callback()
         print("resize finished")
 
@@ -50,17 +61,13 @@ class Window:
         self._render_callback()
 
     def render(self):
+        print(self.points)
         self._render_callback()
 
 
-import singleton
-from utils import Capturing
-import sys
-
-
 class MDE(metaclass=singleton.Singleton):
-    def __init__(self, ADDRESS="127.0.0.1", PORT=4711):
-        self._connect(ADDRESS, PORT)
+    def __init__(self, address="127.0.0.1", port=4711):
+        self.mc = minecraft.Minecraft.create(address=address, port=port)
         self.next_focus_time = 0
 
         # maps windows to focus time
@@ -74,22 +81,22 @@ class MDE(metaclass=singleton.Singleton):
             for msg in self.mc.player.pollChatPosts():
                 if len(msg.message) > 0 and msg.message[0] == "%":
                     try:
+                        # pylint: disable=eval-used
                         out = eval(msg.message[1:])
                         self.mc.postToChat(out)
+                    # pylint: disable=broad-except
                     except BaseException as error:
                         self.mc.postToChat(error)
-                        # print(error)
                 else:
                     try:
-                        with Capturing() as out:
+                        out: io.StringIO
+                        with capturing_stdout() as out:
+                            # pylint: disable=exec-used
                             exec(msg.message)
-                            self.mc.postToChat(out)
+                        self.mc.postToChat(out)
+                    # pylint: disable=broad-except
                     except BaseException as error:
                         self.mc.postToChat(error)
-                        # print(error)
-
-    def _connect(self, ADDRESS, PORT):
-        self.mc = mcpi.minecraft.Minecraft.create(address=ADDRESS, port=PORT)
 
     def create_window(self, pos=(0, 10, 0), dims=(50, 1, 50)):
         w = Window(
@@ -105,33 +112,34 @@ class MDE(metaclass=singleton.Singleton):
         return w
 
     def _render_callback(self):
-        for w, prio in sorted(self.focus_time.items(), key=lambda x: x[1]):
+        for w, _ in sorted(self.focus_time.items(), key=lambda x: x[1]):
+            print("yo")
             self._draw_cube_relative_to_window(
                 w,
                 0,
                 0,
                 0,
-                w._dims[0] - 1,
-                w._dims[1] - 1,
-                w._dims[2] - 1,
-                mcpi.block.AIR.id,
+                w.dims[0] - 1,
+                w.dims[1] - 1,
+                w.dims[2] - 1,
+                block.AIR.id,
                 0,
             )
-            import utils
-
+            print(w.points)
             for point in w.points:
                 self._draw_point_relative_to_window(w, *point)
 
-            for p1, p2 in utils.get_cuboid_sides(*w._dims):
+            for p1, p2 in get_cuboid_sides(*w.dims):
                 self._draw_cube_relative_to_window(
-                    w, *p1, *p2, mcpi.block.GOLD_BLOCK.id, 0
+                    w, *p1, *p2, block.GOLD_BLOCK.id, 0
                 )
 
     def _clear_screen_callback(self):
         rendered_points_backup = list(self.last_rendered_points)
         self.last_rendered_points.clear()
-        for (w, x, y, z, block_id, block_data) in rendered_points_backup:
-            self._draw_point_relative_to_window(w, x, y, z, mcpi.block.AIR.id, 0)
+        for (w, x, y, z, _, _) in rendered_points_backup:
+            self._draw_point_relative_to_window(
+                w, x, y, z, block.AIR.id, 0)
 
     def _focus_callback(self, window):
         self.focus_time[window] = self.next_focus_time
@@ -143,34 +151,36 @@ class MDE(metaclass=singleton.Singleton):
     def _draw_point_relative_to_window(self, w, x, y, z, block_id, block_data):
         if (
             x >= 0
-            and x < w._dims[0] - 0
+            and x < w.dims[0] - 0
             and y >= 0
-            and y < w._dims[1] - 0
+            and y < w.dims[1] - 0
             and z >= 0
-            and z < w._dims[2] - 0
+            and z < w.dims[2] - 0
         ):
             self.mc.setBlock(
-                -x + w._pos[0], y + w._pos[1], z + w._pos[2], block_id, block_data,
+                -x + w.pos[0], y + w.pos[1], z +
+                w.pos[2], block_id, block_data,
             )
-            self.last_rendered_points.append((w, x, y, z, block_id, block_data,))
+            self.last_rendered_points.append(
+                (w, x, y, z, block_id, block_data,))
 
     def _draw_cube_relative_to_window(
         self, w, x1, y1, z1, x2, y2, z2, block_id, block_data
     ):
         x1 = max(x1, 0)
-        x2 = min(x2, w._dims[0] - 1)
+        x2 = min(x2, w.dims[0] - 1)
         y1 = max(y1, 0)
-        y2 = min(y2, w._dims[1] - 1)
+        y2 = min(y2, w.dims[1] - 1)
         z1 = max(z1, 0)
-        z2 = min(z2, w._dims[2] - 1)
+        z2 = min(z2, w.dims[2] - 1)
         for x in range(x1, x2 + 1):
             for y in range(y1, y2 + 1):
                 for z in range(z1, z2 + 1):
                     # print("cubing", file=sys.stderr)
                     self.mc.setBlock(
-                        -x + w._pos[0],
-                        y + w._pos[1],
-                        z + w._pos[2],
+                        -x + w.pos[0],
+                        y + w.pos[1],
+                        z + w.pos[2],
                         block_id,
                         block_data,
                     )
@@ -179,13 +189,32 @@ class MDE(metaclass=singleton.Singleton):
                     )
 
 
-import matplotlib as mpl
+def get_cuboid_sides(x, y, z):
+    vertices = itertools.product([0, x - 1], [0, y - 1], [0, z - 1])
+    sides = [
+        (x, y)
+        for x, y in itertools.product(vertices, repeat=2)
+        if int(x[0] != y[0]) + int(x[1] != y[1]) + int(x[2] != y[2]) == 1
+    ]
+    return sides
 
-mpl.rcParams["figure.figsize"] = (0.3, 0.3)
-mpl.rcParams["lines.markersize"] = 1
 
-mpl.use("module://mc_backend")
-import matplotlib.pyplot as plt
+@contextlib.contextmanager
+def capturing_stdout():
+    backup = sys.stdout
+    sys.stdout = io.StringIO()
+    yield sys.stdout
+    sys.stdout = backup
 
-MDE().mainloop()
 
+if __name__ == "__main__":
+    import matplotlib as mpl
+
+    mpl.rcParams["figure.figsize"] = (0.3, 0.3)
+    mpl.rcParams["lines.markersize"] = 1
+
+    mpl.use("module://mc_backend")
+    import matplotlib.pyplot as plt
+
+    plt.ion()
+    MDE().mainloop()
