@@ -5,12 +5,12 @@ import sys
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 
 from mc_mpl.mde import MDE
 
-mpl.rcParams["figure.figsize"] = (0.3, 0.3)
+mpl.rcParams["figure.figsize"] = (1, 1)
 mpl.rcParams["lines.markersize"] = 1
-mpl.interactive(True)
 mpl.use("module://mc_mpl.mc_backend")
 
 
@@ -44,5 +44,4 @@ while True:
             # pylint: disable=broad-except
             except BaseException as error:
                 MDE().mc.postToChat(error)
-        print('showing')
         plt.show()

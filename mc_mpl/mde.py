@@ -1,10 +1,4 @@
-import sys
-import time
-import contextlib
 import itertools
-import io
-
-import numpy as np
 
 import mc_mpl.mcpi.minecraft as minecraft
 import mc_mpl.singleton as singleton
@@ -43,13 +37,11 @@ class Window:
         self._clear_screen_callback()
         self.dims = dims
         self._render_callback()
-        print("resize finished")
 
     def focus(self):
         self._clear_screen_callback()
         self._focus_callback(self)
         self._render_callback()
-        print("focus finished")
 
     def close(self):
         self._clear_screen_callback()

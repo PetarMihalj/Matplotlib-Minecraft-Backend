@@ -2,3 +2,4 @@
 /server
 __pycache__/
 .vscode/
+run_on_file.sh
