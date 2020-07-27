@@ -10,6 +10,7 @@ import sys
 
 mpl.rcParams["figure.figsize"] = (1, 1)
 mpl.rcParams["lines.markersize"] = 1
+mpl.rcParams['font.size'] = 5
 
 
 class FigureCanvasMC(FigureCanvasBase):
@@ -38,6 +39,7 @@ class FigureCanvasMC(FigureCanvasBase):
             self.figure.dpi,
             self.figure.bbox,
             self.manager.window.points.append,
+            self.manager.window.signs.append
         )
         self.figure.draw(renderer)
 
@@ -48,7 +50,7 @@ class FigureManagerMC(FigureManagerBase):
         size = canvas.figure.get_size_inches() * canvas.figure.dpi
 
         self.window = MDE().create_window(
-            dims=(int(size[0]), 1, int(size[1])))
+            dims=(int(size[0]), 2, int(size[1])))
 
         # initialized in superclass constructor
         self.canvas: FigureCanvasMC
@@ -63,17 +65,17 @@ class FigureManagerMC(FigureManagerBase):
 
     def resize(self, w, h):
         self.window.resize((int(w),
-                            1, int(h)))
+                            2, int(h)))
 
     def move(self, x, y):
         self.window.move((x, 10, y))
 
 
-@_Backend.export
+@ _Backend.export
 class MPLBackend(_Backend):
     FigureCanvas = FigureCanvasMC
     FigureManager = FigureManagerMC
 
-    @staticmethod
+    @ staticmethod
     def trigger_manager_draw(manager):
         manager.show()

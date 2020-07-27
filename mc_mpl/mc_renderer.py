@@ -100,7 +100,7 @@ def rgb_to_wool_data(rgbface):
 
 
 class RendererMC(RendererBase):
-    def __init__(self, l, b, w, h, dpi, bbox, draw_point_callback):
+    def __init__(self, l, b, w, h, dpi, bbox, draw_point_callback, draw_sign_callback):
         RendererBase.__init__(self)
         self.l = l
         self.b = b
@@ -109,9 +109,19 @@ class RendererMC(RendererBase):
         self.dpi = dpi
         self.bbox = bbox
         self.dpc = draw_point_callback
+        self.dsc = draw_sign_callback
 
     def draw_image(self, gc, x, y, im, transform=None):
         raise NotImplementedError()
+
+    def draw_markers(self, gc, marker_path, marker_trans, path, trans, rgbFace=None):
+        return super().draw_markers(gc, marker_path, marker_trans, path, trans, rgbFace=rgbFace)
+
+    def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
+        pass  # still not implemented, but has to be inside
+        '''self.dpc((x+10, 0, y+1, block.WOOD.id, 0))
+        self.dsc((x+10, 1, y+1, s))
+        '''
 
     def draw_path(self, gc, path, transform, rgbFace=None):
         def drawing_closure(x, y):

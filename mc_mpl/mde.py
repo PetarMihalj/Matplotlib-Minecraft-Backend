@@ -21,6 +21,7 @@ class Window:
         # this is a part of public interface
         # lazy until render() called
         self.points = []
+        self.signs = []
         self.right_click_callbacks = []
 
         self._render_callback = _render_callback
@@ -46,6 +47,7 @@ class Window:
     def close(self):
         self._clear_screen_callback()
         self.points.clear()
+        self.signs.clear()
         self._destroy_callback(self)
         self._render_callback()
 
@@ -62,7 +64,7 @@ class MDE(metaclass=singleton.Singleton):
         self.focus_time = dict()
         self.last_rendered_points = []
 
-    def create_window(self, pos=(0, 10, 0), dims=(50, 1, 50)):
+    def create_window(self, pos=(0, 10, 0), dims=(50, 2, 50)):
         w = Window(
             pos,
             dims,
@@ -91,6 +93,9 @@ class MDE(metaclass=singleton.Singleton):
             for point in w.points:
                 self._draw_point_relative_to_window(w, *point)
 
+            for sign in w.signs:
+                self._draw_sign_relative_to_window(w, *sign)
+
             for p1, p2 in get_cuboid_sides(*w.dims):
                 self._draw_cube_relative_to_window(
                     w, *p1, *p2, block.GOLD_BLOCK.id, 0
@@ -112,9 +117,9 @@ class MDE(metaclass=singleton.Singleton):
 
     def _draw_point_relative_to_window(self, w, x, y, z, block_id, block_data):
         if (
-            x >= 0
-            and x < w.dims[0] - 0
-            and y >= 0
+            #x >= 0
+            # and x < w.dims[0] - 0
+            y >= 0
             and y < w.dims[1] - 0
             and z >= 0
             and z < w.dims[2] - 0
@@ -125,6 +130,23 @@ class MDE(metaclass=singleton.Singleton):
             )
             self.last_rendered_points.append(
                 (w, x, y, z, block_id, block_data,))
+
+    def _draw_sign_relative_to_window(self, w, x, y, z, line):
+        if (
+            #x >= 0
+            # and x < w.dims[0] - 0
+            y >= 0
+            and y < w.dims[1] - 0
+            and z >= 0
+            and z < w.dims[2] - 0
+        ):
+            self.mc.setSign(
+                -x + w.pos[0], y + w.pos[1], z +
+                w.pos[2], 63, 8, line
+            )
+            # this doesnt mattter for deletion, act as if block was placed
+            self.last_rendered_points.append(
+                (w, x, y, z, 63, 8,))
 
     def _draw_cube_relative_to_window(
         self, w, x1, y1, z1, x2, y2, z2, block_id, block_data
