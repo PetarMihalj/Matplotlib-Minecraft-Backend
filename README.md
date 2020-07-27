@@ -72,7 +72,7 @@ python -m mc_mpl.interactive
 ```
 Example chat input and results:
 
-![](images/interactive.png)
+![](images/demo.png)
 
 This mode doesn't require you to invoke .show(), but instead calls GUI callbacks on every command to update the screen.
 Commands starting with % are shortcuts for printing the result of the call (evaluating), instead of just executing it in current interpreter session.
@@ -111,11 +111,8 @@ For now, this is a solo project. If you want to contribute, feel free to send me
 - Minecraft team, for the game
 - Craftbukkit team, for the server
 - https://github.com/zhuowei, for python API to craftbukkit server (https://github.com/zhuowei/RaspberryJuice)
-
+- http://fvcproductions.com, for README.md template
 
 ## License
 
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
-
-- **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2015 © <a href="http://fvcproductions.com" target="_blank">FVCproductions</a>.
