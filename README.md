@@ -83,7 +83,7 @@ Requires Python3, jre/jdk, numpy and matplotlib to be installed.
 
 1. Clone or download the git repository
 2. Unpack minecraft server along with plugins, run it with the supplied bash script.
-3. Login to your server, and check out the usage section to learn how to use it.
+3. Login to your server, and check out the examples section to learn how to use it.
 
 ## Features
 
