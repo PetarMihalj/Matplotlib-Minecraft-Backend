@@ -55,7 +55,7 @@ ax[0].plot(x, x)
 ax[1].plot(x, np.sin(x))
 plt.show()  # rendering is initialized via plt.show()
 
-input()  # since this is a guy backend, you have to pause it, or it will auto-close
+input()  # since this is a GUI backend, you have to pause it, or it will auto-close
 ```
 ![](images/movement.png)
 
